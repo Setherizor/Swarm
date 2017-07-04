@@ -6,6 +6,7 @@ SWARM_MASS = 10;
 CANVAS_SIZE = 500;
 AVGAIM_MONITOR = 5;
 AVOID_RANGE = 20;
+AVOID_POWER = 1.6;
 FRAMERATE = 35;
 
 TODEGREE = (180 / Math.PI);
@@ -120,7 +121,47 @@ var Thing = function () {
     self.x = Math.random() * CANVAS_SIZE;
     self.y = Math.random() * CANVAS_SIZE;
 
+    // ==== NON STATE FUNCTIONS ====
     var entity_update = self.update;
+    self.acclerate = function(ammount) {
+        self.totalSpeed += ammount;
+        self.spdX = (self.totalSpeed) * Math.cos(self.currentAngle);
+        self.spdY = (self.totalSpeed) * Math.sin(self.currentAngle);
+    }
+    self.near = function () {
+        var distances = [];
+        for (var i = 0; i < SWARM.things.length; i++) {
+            var distance = disToPoint(self, SWARM.things[i]);
+            distances.push({ dis: distance, index: i });
+
+            // Sort by distances
+            distances.sort(function (a, b) { return a.dis - b.dis; });
+            // Cut the crap farther away from self
+            removeThing(distances, AVGAIM_MONITOR + 1, SWARM_SIZE);
+        };
+        // If it was a state change, put back to wandering afterwards.
+        if (SWARM.state == 5) {
+            console.log("===Only outputs the closest distances and indexs in array for THING[0]===");
+            console.log(distances);
+            s(1);
+        }
+        return distances;
+    }
+    self.avoidNeighbors = function() {
+        var distances = self.near();
+        for (var i = 0; i < distances.length; i++) {
+            var curr = distances[i];
+            var other = SWARM.things[curr.index]
+
+            if (curr.dis < AVOID_RANGE && curr.dis != 0) {
+                var angle = angleToPoint(self, other);
+                self.x -= Math.cos(angle) * AVOID_POWER;
+                self.y -= Math.sin(angle) * AVOID_POWER;
+            }
+        }
+    }
+    
+    // ==== STATE FUNCTIONS ====
     self.update = function () {
         switch (self.state) {
             // Still 
@@ -165,20 +206,6 @@ var Thing = function () {
         self.avoidNeighbors();
         entity_update();
     }
-    self.avoidNeighbors = function() {
-        var distances = self.near();
-        for (var i = 0; i < distances.length; i++) {
-            var curr = distances[i];
-            var other = SWARM.things[curr.index]
-
-            var dis = curr.dis;//disToPoint(self, other);
-            if (dis < AVOID_RANGE && dis != 0) {
-                var angle = angleToPoint(self, other);
-                self.x -= Math.cos(angle) / 2;
-                self.y -= Math.sin(angle) / 2;
-            }
-        }
-    }
 
     self.still = function () {
         if (self.spdX != 0 || self.spdY != 0) {
@@ -212,7 +239,6 @@ var Thing = function () {
         if (other.totalSpeed < 4) other.acclerate(1); 
         if (self.totalSpeed > 3.8) self.acclerate(-.3);
         
-
         var desiredAngle = angleToPoint(self, other);
         var dis = disToPoint(self, other);
 
@@ -227,36 +253,16 @@ var Thing = function () {
         // angle = angle - Math.floor(angle/360)*360;
         self.spdX = self.totalSpeed * Math.cos(angle);
         self.spdY = self.totalSpeed * Math.sin(angle);
-
-    }
-    self.acclerate = function(ammount) {
-        self.totalSpeed += ammount;
-        self.spdX = (self.totalSpeed) * Math.cos(self.currentAngle);
-        self.spdY = (self.totalSpeed) * Math.sin(self.currentAngle);
-    }
-    self.near = function () {
-        var distances = [];
-        for (var i = 0; i < SWARM.things.length; i++) {
-            var distance = disToPoint(self, SWARM.things[i]);
-            distances.push({ dis: distance, index: i });
-
-            // Sort by distances
-            distances.sort(function (a, b) { return a.dis - b.dis; });
-            // Cut the crap farther away from self
-            removeThing(distances, AVGAIM_MONITOR + 1, SWARM_SIZE);
-        };
-        // If it was a state change, put back to wandering afterwards.
-        if (SWARM.state == 5) {
-            console.log("===Only outputs the closest distances and indexs in array for THING[0]===");
-            console.log(distances);
-            s(1);
-        }
-        return distances;
     }
     return self;
 }
 
 // ==== Rendering Functions ====
+var renderFirst = function (data) {
+    var s = SWARM_MASS * 1.75;
+    ctx.fillStyle = "#FF00FF";
+    ctx.fillRect(data[0].x - s / 2, data[0].y - s / 2, s, s);
+}
 var render = function (data) {
     ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -267,27 +273,6 @@ var render = function (data) {
     var s = SWARM_MASS;
     for (var i = 1; i < data.length; i++) {
         ctx.fillRect(data[i].x - s / 2, data[i].y - s / 2, s, s);
-    };
-}
-
-var renderFirst = function (data) {
-    var s = SWARM_MASS * 1.75;
-    ctx.fillStyle = "#FF00FF";
-    ctx.fillRect(data[0].x - s / 2, data[0].y - s / 2, s, s);
-}
-
-var showAim = function (data) {
-    var len = 8;
-    for (var i = 0; i < data.length; i++) {
-        var s = data[i];
-        var start = { x: s.x, y: s.y };
-        var end = { x: s.x + (len * s.spdX), y: s.y + (len * s.spdY) };
-        ctx.beginPath();
-        ctx.moveTo(start.x, start.y);
-        ctx.lineTo(end.x, end.y);
-        ctx.lineWidth = 1.5;
-        ctx.strokeStyle = '#FF00FF';
-        ctx.stroke();
     };
 }
 var averageAim = function (s) {
@@ -311,33 +296,29 @@ var averageAim = function (s) {
     ctx.fillStyle = "#00FF00";
     ctx.fillRect(avgAim.x - s / 2, avgAim.y - s / 2, s, s);
 }
+var showAim = function (data) {
+    var len = 8;
+    for (var i = 0; i < data.length; i++) {
+        var s = data[i];
+        var start = { x: s.x, y: s.y };
+        var end = { x: s.x + (len * s.spdX), y: s.y + (len * s.spdY) };
+        ctx.beginPath();
+        ctx.moveTo(start.x, start.y);
+        ctx.lineTo(end.x, end.y);
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = '#FF00FF';
+        ctx.stroke();
+    };
+}
 
 SWARM = Swarm();
-// b for Boids
 var b = SWARM.things;
 
 // Final frame runner
 setInterval(function () {
     SWARM.update();
-    render(b);
     renderFirst(b);
-    showAim(b);
+    render(b);
     averageAim(b);
+    showAim(b);
 }, 1000 / FRAMERATE);
-
-/* ==== NOTES ==== 
-
-These angles are equal
-var angle = Math.atan2(end.y - start.y, end.x - start.x) * 180 / Math.PI;
-var angle2 = Math.atan2(s.spdY, s.spdX) * 180 / Math.PI;
-
-self.spdX += totalSpeed * (Math.sin(angle * (Math.PI/180)));
-self.spdY += totalSpeed * (Math.cos(angle * (Math.PI/180)));
-
-
-// Wander 
- case 1.5:
-    self.wander();
-    break;
-         
-*/
