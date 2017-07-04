@@ -1,6 +1,6 @@
 // Swarm variables
 SWARM = null;
-SWARM_SIZE = 2;
+SWARM_SIZE = 10;
 SWARM_MASS = 10;
 
 CANVAS_SIZE = 500;
@@ -50,14 +50,12 @@ var Swarm = function () {
         target: { x: CANVAS_SIZE / 2, y: CANVAS_SIZE / 2 },
         state: 0
     }
-
     // Create Swarm
     if (self.things[0] == undefined) {
         for (i = 0; i < SWARM_SIZE; i++) {
             self.things.push(Thing());
         };
     }
-
     self.setState = function (newState) {
         var oldState = self.things[0].state;
         self.state = newState;
@@ -79,7 +77,6 @@ var Swarm = function () {
     return self;
 }
 
-
 // Entity Class
 var Entity = function () {
     var self = {
@@ -93,7 +90,8 @@ var Entity = function () {
     }
     self.update = function () {
         self.updatePosition();
-        self.collideWalls();
+        //self.collideWalls();
+        self.phaseWalls();
     }
     self.updatePosition = function () {
         self.x += self.spdX;
@@ -102,12 +100,36 @@ var Entity = function () {
         self.totalSpeed = Math.sqrt(self.spdX * self.spdX + self.spdY * self.spdY);
     }
     self.collideWalls = function () {
-        // Someday add function to teleport Thing back inside canvas
-        if (self.x > CANVAS_SIZE && self.spdx != 0) self.spdX *= -1;
-        if (self.x < 0 && self.spdx != 0) self.spdX *= -1;
-
-        if (self.y > CANVAS_SIZE && self.spdY != 0) self.spdY *= -1;
-        if (self.y < 0 && self.spdY != 0) self.spdY *= -1;
+        // X Checks
+        if (self.x > CANVAS_SIZE && self.spdx != 0) {
+            self.x = CANVAS_SIZE - 10;
+            self.spdX *= -1;
+        } else if (self.x < 0 && self.spdx != 0) {
+            self.x = 0 + 10;
+            self.spdX *= -1;
+        }
+        // Y Checks
+        if (self.y > CANVAS_SIZE && self.spdY != 0) {
+            self.y = CANVAS_SIZE - 10;
+            self.spdY *= -1;
+        } else if (self.y < 0 && self.spdY != 0) {
+            self.y = 0 + 10;
+            self.spdY *= -1;
+        }
+    }
+    self.phaseWalls = function () {
+        // X Checks
+        if (self.x > CANVAS_SIZE && self.spdx != 0) {
+            self.x -= CANVAS_SIZE;
+        } else if (self.x < 0 && self.spdx != 0) {
+            self.x += CANVAS_SIZE
+        }
+        // Y Checks
+        if (self.y > CANVAS_SIZE && self.spdY != 0) {
+            self.y -= CANVAS_SIZE;
+        } else if (self.y < 0 && self.spdY != 0) {
+            self.y += CANVAS_SIZE;
+        }
     }
     return self;
 }
@@ -131,12 +153,11 @@ var Thing = function () {
         for (var i = 0; i < SWARM.things.length; i++) {
             var distance = disToPoint(self, SWARM.things[i]);
             distances.push({ dis: distance, index: i });
-
-            // Sort by distances
-            distances.sort(function (a, b) { return a.dis - b.dis; });
-            // Cut the crap farther away from self
-            removeThing(distances, AVGAIM_MONITOR + 1, SWARM_SIZE);
         };
+        // Sort by distances
+        distances.sort(function (a, b) { return a.dis - b.dis; });
+        // Cut the crap farther away from self
+        removeThing(distances, AVGAIM_MONITOR + 1, SWARM_SIZE);
         return distances;
     }
     self.avoidNeighbors = function () {
@@ -152,22 +173,43 @@ var Thing = function () {
             }
         }
     }
-    self.averageAim = function (s) {
+    self.averageAim = function () {
+        // AIMER move to 0, 0 when less and less things are in range. how do we fix that.
+
+        var useNearby = true;
+        var s = SWARM.things;
         var len = 10;
         var numx = 0;
         var numy = 0;
-        var distances = s[0].near();
+        var distances = self.near();
 
         for (var i = 0; i < distances.length; i++) {
             var curr = distances[i];
-            numx += s[curr.index].x + (len * s[curr.index].spdX);
-            numy += s[curr.index].y + (len * s[curr.index].spdY);
-        }
 
+            if (useNearby && curr.dis < 100) {
+                numx += s[curr.index].x + (len * s[curr.index].spdX);
+                numy += s[curr.index].y + (len * s[curr.index].spdY);
+            } else { break; }
+        }
+        // minus one for the self that is included in array
         avgX = numx / distances.length - 1;
         avgY = numy / distances.length - 1;
 
         var avgAim = { x: avgX, y: avgY };
+        /*
+        // AIM Bounding check
+        if (avgAim.x > CANVAS_SIZE) {
+           avgAim.x -= 10; 
+        } else if (avgAim.x < 0) {
+           avgAim.x += 10; 
+        }
+
+        if (avgAim.y > CANVAS_SIZE) {
+           avgAim.y -= 10; 
+        } else if (avgAim.y < 0) {
+           avgAim.y += 10; 
+        }
+        */
         return avgAim;
     }
 
@@ -237,16 +279,22 @@ var Thing = function () {
         self.spdY = .05 * dis * Math.sin(angleRad);
     }
     self.follow = function (x, y) {
-        var other = SWARM.things[0];
-        if (other.state === 3) {
-            other.state = 1;
+        var followAvg = true;
+        if (followAvg) {
+            // Use this for follow the average aim function
+            var other = self.averageAim();
+        } else {
+            // Use this for follow the first block.
+            var other = SWARM.things[0];
+            if (other.totalSpeed < 4) other.acclerate(1);
+            if (self.totalSpeed > 3.8) self.acclerate(-.3);
+
+            if (other.state === 3) {
+                other.state = 1;
+            }
         }
-        if (other.totalSpeed < 4) other.acclerate(1);
-        if (self.totalSpeed > 3.8) self.acclerate(-.3);
 
         var desiredAngle = angleToPoint(self, other);
-        var dis = disToPoint(self, other);
-
         self.spdX = self.totalSpeed * Math.cos(desiredAngle);
         self.spdY = self.totalSpeed * Math.sin(desiredAngle);
     }
@@ -273,7 +321,6 @@ var renderFirst = function (data) {
 }
 var render = function (data) {
     // ctx.fillText("Hello World :)", 100, 50);
-
     // Render all but first unit
     ctx.fillStyle = "#FFFFFF";
     var s = SWARM_MASS;
@@ -281,10 +328,9 @@ var render = function (data) {
         ctx.fillRect(data[i].x - s / 2, data[i].y - s / 2, s, s);
     };
 }
-var render0AverageAim = function (s) {
-    avgAim = SWARM.things[0].averageAim(s);
-
-    s = SWARM_MASS * 1.5;
+var render0AverageAim = function () {
+    var avgAim = SWARM.things[0].averageAim();
+    var s = SWARM_MASS * 1.5;
     ctx.fillStyle = "#00FF00";
     ctx.fillRect(avgAim.x - s / 2, avgAim.y - s / 2, s, s);
 }
@@ -311,6 +357,6 @@ setInterval(function () {
     SWARM.update();
     renderFirst(b);
     render(b);
-    render0AverageAim(b);
+    render0AverageAim();
     showAim(b);
 }, 1000 / FRAMERATE);
