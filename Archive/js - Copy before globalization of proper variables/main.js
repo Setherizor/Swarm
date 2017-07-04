@@ -149,6 +149,7 @@ var Thing = function () {
         self.spdY = (self.totalSpeed) * Math.sin(self.currentAngle);
     }
     self.adoptAvgSpeed = function (nearby) {
+        var s = SWARM.things;
         var distances = nearby;
         var numUsed = 0;
         var numSpd = 0;
@@ -158,7 +159,7 @@ var Thing = function () {
 
             if (curr.dis < NEARBY_SIZE) {
                 numUsed++;
-                numSpd += b[curr.index].totalSpeed;
+                numSpd += s[curr.index].totalSpeed;
             } else { break; }
         }
         // minus one for the self that is included in array
@@ -168,8 +169,8 @@ var Thing = function () {
     }
     self.near = function () {
         var distances = [];
-        for (var i = 0; i < b.length; i++) {
-            var distance = disToPoint(self, b[i]);
+        for (var i = 0; i < SWARM.things.length; i++) {
+            var distance = disToPoint(self, SWARM.things[i]);
             distances.push({ dis: distance, index: i });
         };
         // Sort by distances
@@ -182,7 +183,7 @@ var Thing = function () {
         var distances = self.near();
         for (var i = 0; i < distances.length; i++) {
             var curr = distances[i];
-            var other = b[curr.index]
+            var other = SWARM.things[curr.index]
 
             if (curr.dis < AVOID_RANGE && curr.dis != 0) {
                 var angle = angleToPoint(self, other);
@@ -193,6 +194,7 @@ var Thing = function () {
     }
     self.averageAim = function () {
         var useNearby = true;
+        var s = SWARM.things;
         var distances = self.near();
         var len = 13;
         var numx = 0;
@@ -204,8 +206,8 @@ var Thing = function () {
 
             if (useNearby && curr.dis < NEARBY_SIZE) {
                 numUsed++;
-                numx += b[curr.index].x + (len * b[curr.index].spdX);
-                numy += b[curr.index].y + (len * b[curr.index].spdY);
+                numx += s[curr.index].x + (len * s[curr.index].spdX);
+                numy += s[curr.index].y + (len * s[curr.index].spdY);
             } else { break; }
         }
         // minus one for the self that is included in array
@@ -309,7 +311,7 @@ var Thing = function () {
             var other = self.averageAim();
         } else {
             // Use this for follow the first block.
-            var other = b[0];
+            var other = SWARM.things[0];
             if (other.totalSpeed < 4) other.acclerate(1);
             if (self.totalSpeed > 3.8) self.acclerate(-.3);
 
@@ -353,7 +355,7 @@ var render = function (data) {
     };
 }
 var render0AverageAim = function () {
-    var avgAim = b[0].averageAim();
+    var avgAim = SWARM.things[0].averageAim();
     var s = SWARM_MASS * 1.5;
     ctx.fillStyle = "#00FF00";
     ctx.fillRect(avgAim.x - s / 2, avgAim.y - s / 2, s, s);
