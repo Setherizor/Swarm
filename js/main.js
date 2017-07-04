@@ -182,18 +182,20 @@ var Thing = function () {
         var numx = 0;
         var numy = 0;
         var distances = self.near();
+        var numUsed = 0;
 
         for (var i = 0; i < distances.length; i++) {
             var curr = distances[i];
 
             if (useNearby && curr.dis < 100) {
+                numUsed++;
                 numx += s[curr.index].x + (len * s[curr.index].spdX);
                 numy += s[curr.index].y + (len * s[curr.index].spdY);
             } else { break; }
         }
         // minus one for the self that is included in array
-        avgX = numx / distances.length - 1;
-        avgY = numy / distances.length - 1;
+        avgX = numx / numUsed;
+        avgY = numy / numUsed;
 
         var avgAim = { x: avgX, y: avgY };
         /*
