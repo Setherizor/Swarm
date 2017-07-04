@@ -1,6 +1,6 @@
 // Swarm variables
 SWARM = null;
-SWARM_SIZE = 200;
+SWARM_SIZE = 2;
 SWARM_MASS = 10;
 
 CANVAS_SIZE = 500;
@@ -20,8 +20,7 @@ STATES = {
     Seek: 2,
     Follow: 3,
     Flee: 4,
-    Near: 5,
-    Circles: 6,
+    Circles: 5,
     Nothing: 10,
 
     // Number based
@@ -31,8 +30,7 @@ STATES = {
     2: "Seek",
     3: "Follow",
     4: "Flee",
-    5: "Near",
-    6: "Circles",
+    5: "Circles",
     10: "Nothing"
 }
 
@@ -49,7 +47,7 @@ ctx.font = '30px Roboto';
 var Swarm = function () {
     var self = {
         things: [],
-        target: { x: 0, y: 0 },
+        target: { x: CANVAS_SIZE / 2, y: CANVAS_SIZE / 2 },
         state: 0
     }
 
@@ -139,12 +137,6 @@ var Thing = function () {
             // Cut the crap farther away from self
             removeThing(distances, AVGAIM_MONITOR + 1, SWARM_SIZE);
         };
-        // If it was a state change, put back to wandering afterwards.
-        if (SWARM.state == 5) {
-            console.log("===Only outputs the closest distances and indexs in array for THING[0]===");
-            console.log(distances);
-            s(1);
-        }
         return distances;
     }
     self.avoidNeighbors = function() {
@@ -191,14 +183,9 @@ var Thing = function () {
                 s(1);
                 break;
 
-            // Near 
-            case 5:
-                self.near();
-                break;
-
             // Circles Everywhere
-            case 6:
-                self.turn(10);
+            case 5:
+                self.turn(12);
                 break;
             case 10:
             // do nothing
@@ -247,7 +234,7 @@ var Thing = function () {
     }
     self.turn = function (turnAngle) {
         // This function uses radians (only way it would work)
-        var currentAngleRad = self.currentAngle * TORADIAN;
+        var currentAngleRad = self.currentAngle;
         angle = currentAngleRad + (turnAngle * TORADIAN);
 
         // angle = angle - Math.floor(angle/360)*360;
@@ -259,13 +246,14 @@ var Thing = function () {
 
 // ==== Rendering Functions ====
 var renderFirst = function (data) {
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     var s = SWARM_MASS * 1.75;
     ctx.fillStyle = "#FF00FF";
     ctx.fillRect(data[0].x - s / 2, data[0].y - s / 2, s, s);
 }
 var render = function (data) {
-    ctx.fillStyle = "#000000";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
     // ctx.fillText("Hello World :)", 100, 50);
 
     // Render all but first unit
