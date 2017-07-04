@@ -44,7 +44,7 @@ function disToPoint(self, other) {
     var a = self.x - other.x;
     var b = self.y - other.y;
     var distance = Math.sqrt(a * a + b * b);
-    return distance;
+    return distance; // in pixels
 }
 
 // Click Events
@@ -60,7 +60,7 @@ canvas.addEventListener("mouseup", function (event) {
     s(1);
 });
 canvas.addEventListener("dblclick", function (event) {
-    s(6);
+    s(5);
 });
 
 // Max canvas size for square

@@ -121,7 +121,7 @@ var Thing = function () {
 
     // ==== NON STATE FUNCTIONS ====
     var entity_update = self.update;
-    self.acclerate = function(ammount) {
+    self.acclerate = function (ammount) {
         self.totalSpeed += ammount;
         self.spdX = (self.totalSpeed) * Math.cos(self.currentAngle);
         self.spdY = (self.totalSpeed) * Math.sin(self.currentAngle);
@@ -139,7 +139,7 @@ var Thing = function () {
         };
         return distances;
     }
-    self.avoidNeighbors = function() {
+    self.avoidNeighbors = function () {
         var distances = self.near();
         for (var i = 0; i < distances.length; i++) {
             var curr = distances[i];
@@ -152,7 +152,25 @@ var Thing = function () {
             }
         }
     }
-    
+    self.averageAim = function (s) {
+        var len = 10;
+        var numx = 0;
+        var numy = 0;
+        var distances = s[0].near();
+
+        for (var i = 0; i < distances.length; i++) {
+            var curr = distances[i];
+            numx += s[curr.index].x + (len * s[curr.index].spdX);
+            numy += s[curr.index].y + (len * s[curr.index].spdY);
+        }
+
+        avgX = numx / distances.length - 1;
+        avgY = numy / distances.length - 1;
+
+        var avgAim = { x: avgX, y: avgY };
+        return avgAim;
+    }
+
     // ==== STATE FUNCTIONS ====
     self.update = function () {
         switch (self.state) {
@@ -223,9 +241,9 @@ var Thing = function () {
         if (other.state === 3) {
             other.state = 1;
         }
-        if (other.totalSpeed < 4) other.acclerate(1); 
+        if (other.totalSpeed < 4) other.acclerate(1);
         if (self.totalSpeed > 3.8) self.acclerate(-.3);
-        
+
         var desiredAngle = angleToPoint(self, other);
         var dis = disToPoint(self, other);
 
@@ -263,22 +281,8 @@ var render = function (data) {
         ctx.fillRect(data[i].x - s / 2, data[i].y - s / 2, s, s);
     };
 }
-var averageAim = function (s) {
-    var len = 10;
-    var numx = 0;
-    var numy = 0;
-    var distances = s[0].near();
-
-    for (var i = 0; i < distances.length; i++) {
-        var curr = distances[i];
-        numx += s[curr.index].x + (len * s[curr.index].spdX);
-        numy += s[curr.index].y + (len * s[curr.index].spdY);
-    }
-
-    avgX = numx / distances.length - 1;
-    avgY = numy / distances.length - 1;
-
-    avgAim = { x: avgX, y: avgY };
+var render0AverageAim = function (s) {
+    avgAim = SWARM.things[0].averageAim(s);
 
     s = SWARM_MASS * 1.5;
     ctx.fillStyle = "#00FF00";
@@ -307,6 +311,6 @@ setInterval(function () {
     SWARM.update();
     renderFirst(b);
     render(b);
-    averageAim(b);
+    render0AverageAim(b);
     showAim(b);
 }, 1000 / FRAMERATE);
