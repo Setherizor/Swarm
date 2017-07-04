@@ -1,0 +1,15 @@
+{
+  "name": "node-template",
+  "version": "1.0.1",
+  "description": "template for my custom servers",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "SHP",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.15.3",
+    "socket.io": "^2.0.3"
+  }
+}
