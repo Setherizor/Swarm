@@ -1,6 +1,6 @@
 // Swarm variables
 SWARM = null;
-SWARM_SIZE = 30;
+SWARM_SIZE = 100;
 SWARM_MASS = 10;
 NEARBY_SIZE = 100;
 
