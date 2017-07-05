@@ -10,10 +10,49 @@
 </head>
 
 <body>
-    <canvas id="ctx" style="border:1px solid #000000;"></canvas>
-    <form onsubmit="return nativeConsole();" autocomplete="off">
-        <input id="input" type="text" style="position: absolute; top: -1px; left: 0px;" value="s(1)"></input>
-    </form>
+    <div id="main">
+        <div>
+        <canvas id="ctx" style="border:1px solid #000000;"></canvas>
+        </div>
+        
+        <div id="forms">
+            <p>The command "s(number)" will change state of Swarm</p>
+            <form onsubmit="return nativeConsole();" autocomplete="off">
+                <label for="input">Console </label>
+                <input id="input" type="text" value="s(1)"></input><br><br>
+                <input type="submit" value="Submit">
+            </form>
+            <hr>
+            <hr>
+            <form onsubmit="return updateGlobals();" autocomplete="off">
+                <label for="smass">Mass</label>
+                <div id="spacer"></div>
+                <input id="smass" type="number" value="10" /><br>
+
+                <label for="nearbySize">View Range</label>
+                <div id="spacer"></div>
+                <input id="nearbySize" type="number" value="100" /><br>
+
+                <label for="watchNumber">View Number</label>
+                <div id="spacer"></div>
+                <input id="watchNumber" type="number" value="5" /><br>
+
+                <label for="avoidR">Avoid Range</label>
+                <div id="spacer"></div>
+                <input id="avoidR" type="number" value="30" /><br>
+
+                <label for="avoidP">Avoid Power</label>
+                <div id="spacer"></div>
+                <input id="avoidP" type="number" value="1.6" /><br>
+
+                <label for="fps">Framerate</label>
+                <div id="spacer"></div>
+                <input id="fps" type="number" value="35" /><br>
+
+                <input type="submit" value="Submit">
+            </form>
+        </div>
+    </div>
 </body>
 
 <script type="text/javascript" src="js/helper.js"></script>

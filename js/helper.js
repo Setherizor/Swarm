@@ -7,6 +7,16 @@ function nativeConsole() {
     return false;
 }
 
+function updateGlobals() {
+    SWARM_MASS = document.getElementById("smass").value;
+    NEARBY_SIZE = document.getElementById("nearbySize").value;
+    AVGAIM_MONITOR = document.getElementById("watchNumber").value;
+    AVOID_RANGE = document.getElementById("avoidR").value;
+    AVOID_POWER = document.getElementById("avoidP").value;
+    FRAMERATE = document.getElementById("fps").value;
+    return false;
+}
+
 // Command swarm
 function s(num, coords) {
     // Simple Change

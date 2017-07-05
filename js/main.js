@@ -42,7 +42,6 @@ var ctx = document.getElementById("ctx").getContext("2d");
 CANVAS_SIZE = getCanvasSize(ctx, 10);
 canvas.width = canvas.height = CANVAS_SIZE;
 ctx.font = '30px Roboto';
-
 // Swarm class
 var Swarm = function () {
     var self = {
@@ -96,7 +95,7 @@ var Entity = function () {
     self.updatePosition = function () {
         self.x += self.spdX;
         self.y += self.spdY;
-        self.currentAngle = angleToPoint({x: self.spdX, y: self.spdY});
+        self.currentAngle = angleToPoint({ x: self.spdX, y: self.spdY });
         self.totalSpeed = Math.sqrt(self.spdX * self.spdX + self.spdY * self.spdY);
     }
     self.collideWalls = function () {
@@ -195,9 +194,7 @@ var Thing = function () {
         var useNearby = true;
         var distances = self.near();
         var len = 13;
-        var numx = 0;
-        var numy = 0;
-        var numUsed = 0;
+        var numx = numy = numUsed = 0;
 
         for (var i = 0; i < distances.length; i++) {
             var curr = distances[i];
@@ -352,11 +349,13 @@ var render = function (data) {
         ctx.fillRect(data[i].x - s / 2, data[i].y - s / 2, s, s);
     };
 }
-var render0AverageAim = function () {
-    var avgAim = b[0].averageAim();
-    var s = SWARM_MASS * 1.5;
-    ctx.fillStyle = "#00FF00";
-    ctx.fillRect(avgAim.x - s / 2, avgAim.y - s / 2, s, s);
+var renderAllAverageAim = function () {
+    for (var i = 0; i < b.length; i++) {
+        var avgAim = b[i].averageAim();
+        var s = SWARM_MASS * .5;
+        ctx.fillStyle = "#00FF00";
+        ctx.fillRect(avgAim.x - s / 2, avgAim.y - s / 2, s, s);
+    }
 }
 var showAim = function (data) {
     var len = 8;
@@ -381,6 +380,6 @@ setInterval(function () {
     SWARM.update();
     renderFirst(b);
     render(b);
-    render0AverageAim();
+    renderAllAverageAim();
     showAim(b);
 }, 1000 / FRAMERATE);
