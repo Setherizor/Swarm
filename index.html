@@ -2,62 +2,61 @@
 <html lang="en">
 
 <head>
-    <title id="title">Swarm</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="style.css">
-    <link rel="shortcut icon" href="https://avatars0.githubusercontent.com/u/16950770?v=3&u=9f6a9494e2f32c9381f8436a718421a4e68b572f&s=400"
-        type="image/x-icon">
+  <title id="title">Swarm</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="style.css">
+  <link rel="shortcut icon" href="https://secure.gravatar.com/avatar/f51d027fb674bba15df8fbe8451d7d23" type="image/x-icon">
 </head>
 
 <body>
-    <div id="main">
-        <div>
-            <canvas id="ctx" style="border:1px solid #000000;"></canvas>
-        </div>
-
-        <div id="forms">
-            <p>The command "s(number)" will change state of Swarm</p>
-            <form onsubmit="return nativeConsole();" autocomplete="off">
-                <label for="input">Console </label>
-                <input id="input" type="text" value="s(3)"></input>(Enter to Submit)<br><br>
-            </form>
-            <button onclick="s(STATES['Wander'])">Wander</button>
-            <button onclick="s(STATES['Seek'])">Seek</button>
-            <button onclick="s(STATES['Follow'])">Flock</button>
-            <button onclick="s(STATES['Circles'])">Circles</button>
-            <hr>
-            <hr>
-            <form onsubmit="return updateGlobals();" autocomplete="off">
-                <label for="smass">Mass</label>
-                <div id="spacer"></div>
-                <input id="smass" type="number" value="10" /><br>
-
-                <label for="nearbySize">View Range</label>
-                <div id="spacer"></div>
-                <input id="nearbySize" type="number" value="100" /><br>
-
-                <label for="watchNumber">View Number</label>
-                <div id="spacer"></div>
-                <input id="watchNumber" type="number" value="5" /><br>
-
-                <label for="avoidR">Avoid Range</label>
-                <div id="spacer"></div>
-                <input id="avoidR" type="number" value="30" /><br>
-
-                <label for="avoidP">Avoid Power</label>
-                <div id="spacer"></div>
-                <input id="avoidP" type="number" value="1.6" /><br>
-
-                <label for="fps">Framerate</label>
-                <div id="spacer"></div>
-                <input id="fps" type="number" value="35" /><br>
-
-                <input type="submit" value="Submit">
-            </form>
-        </div>
+  <div id="main">
+    <div>
+      <canvas id="ctx" style="border:1px solid #000000;"></canvas>
     </div>
+
+    <div id="forms">
+      <p>The command "s(number)" will change state of Swarm</p>
+      <form onsubmit="return nativeConsole()" autocomplete="off">
+        <label for="input">Console </label>
+        <input id="input" type="text" value="s(3)"></input>(Enter to Submit)<br><br>
+      </form>
+      <button onclick="s(STATES['Wander'])">Wander</button>
+      <button onclick="s(STATES['Seek'])">Seek</button>
+      <button onclick="s(STATES['Follow'])">Flock</button>
+      <button onclick="s(STATES['Circles'])">Circles</button>
+      <hr>
+      <hr>
+      <form onsubmit="return updateGlobals()" autocomplete="off">
+        <label for="smass">Mass</label>
+        <div id="spacer"></div>
+        <input id="smass" type="number" value="10" /><br>
+
+        <label for="nearbySize">View Range</label>
+        <div id="spacer"></div>
+        <input id="nearbySize" type="number" value="100" /><br>
+
+        <label for="watchNumber">View Number</label>
+        <div id="spacer"></div>
+        <input id="watchNumber" type="number" value="5" /><br>
+
+        <label for="avoidR">Avoid Range</label>
+        <div id="spacer"></div>
+        <input id="avoidR" type="number" value="30" /><br>
+
+        <label for="avoidP">Avoid Power</label>
+        <div id="spacer"></div>
+        <input id="avoidP" type="number" value="1.6" /><br>
+
+        <label for="fps">Framerate</label>
+        <div id="spacer"></div>
+        <input id="fps" type="number" value="35" /><br>
+
+        <input type="submit" value="Submit">
+      </form>
+    </div>
+  </div>
 </body>
 
 <script type="text/javascript" src="js/helper.js"></script>
