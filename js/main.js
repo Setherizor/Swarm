@@ -1,19 +1,18 @@
 // Swarm variables
-var SWARM = null
-var SWARM_SIZE = 100
-var SWARM_MASS = 10
-var NEARBY_SIZE = 100
+let SWARM = null
+const SWARM_SIZE = 100
+let SWARM_MASS = 10
+let NEARBY_SIZE = 100
 
-var CANVAS_SIZE = 500
-var AVGAIM_MONITOR = 5
-var AVOID_RANGE = 30
-var AVOID_POWER = 1.6
-const FRAMERATE = 35
+let CANVAS_SIZE = 500
+let AVGAIM_MONITOR = 5
+let AVOID_RANGE = 30
+let AVOID_POWER = 1.6
+let FRAMERATE = 35
 
 // Updates in getCanvasSize()
-var ORGIN = { x: 0, y: 0 }
+let ORGIN = { x: 0, y: 0 }
 
-const TODEGREE = (180 / Math.PI)
 const TORADIAN = (Math.PI / 180)
 const STATES = {
   // Word Based
@@ -59,18 +58,12 @@ var Swarm = function () {
     var oldState = self.things[0].state
     self.state = newState
 
-    self.state !== oldState ? self.things.map(function (thing) {
+    (self.state !== oldState) ? self.things.map(function (thing) {
       thing.state = self.state
     }) : ''// Nothing
   }
-  self.setTarget = function (coords) {
-    self.target = coords
-  }
-  self.update = function () {
-    self.things.map(function (thing) {
-      thing.update()
-    })
-  }
+  self.setTarget = coords => self.target = coords
+  self.update = () => self.things.map(thing => thing.update())
   return self
 }
 
@@ -131,62 +124,55 @@ var Thing = function () {
     var numUsed = 0
     var numSpd = 0
 
-    for (var i = 0; i < distances.length; i++) {
-      var curr = distances[i]
-
-      if (curr.dis < NEARBY_SIZE) {
+    distances.map((item) => {
+      if (item.dis < NEARBY_SIZE) {
         numUsed++
-        numSpd += b[curr.index].totalSpeed
-      } else { break }
-    }
+        numSpd += b[item.index].totalSpeed
+      }
+    })
+
     // minus one for the self that is included in array
     var avgSpd = numSpd / numUsed
 
     self.acclerate(avgSpd - self.totalSpeed)
   }
   self.near = function () {
-    var distances = []
-    for (var i = 0; i < b.length; i++) {
-      var distance = disToPoint(self, b[i])
-      distances.push({ dis: distance, index: i })
-    };
+    var distances = b.map((item, index) => {
+      var distance = disToPoint(self, b[index])
+      return { dis: distance, index: index }
+    })
 
     // Sort by distances
-    distances.sort(function (a, b) { return a.dis - b.dis })
+    distances.sort((a, b) => { return a.dis - b.dis })
     // Cut the crap farther away from self
     removeThing(distances, AVGAIM_MONITOR + 1, SWARM_SIZE)
     return distances
   }
   self.avoidNeighbors = function () {
-    var distances = self.near()
-    for (var i = 0; i < distances.length; i++) {
-      var curr = distances[i]
-      var other = b[curr.index]
-
-      if (curr.dis < AVOID_RANGE && curr.dis !== 0) {
+    self.near().map((item) => {
+      var other = b[item.index]
+      if (item.dis < AVOID_RANGE && item.dis !== 0) {
         var angle = angleToPoint(self, other)
         self.x -= Math.cos(angle) * AVOID_POWER
         self.y -= Math.sin(angle) * AVOID_POWER
       }
-    }
+    })
   }
   self.averageAim = function () {
     var useNearby = true
-    var distances = self.near()
     var len = 13
     var numx = 0
     var numy = 0
     var numUsed = 0
 
-    for (var i = 0; i < distances.length; i++) {
-      var curr = distances[i]
-
-      if (useNearby && curr.dis < NEARBY_SIZE) {
+    self.near().map((item) => {
+      if (useNearby && item.dis < NEARBY_SIZE) {
         numUsed++
-        numx += b[curr.index].x + (len * b[curr.index].spdX)
-        numy += b[curr.index].y + (len * b[curr.index].spdY)
-      } else { break }
-    }
+        numx += b[item.index].x + (len * b[item.index].spdX)
+        numy += b[item.index].y + (len * b[item.index].spdY)
+      }
+    })
+
     // minus one for the self that is included in array
     var avgX = numx / numUsed
     var avgY = numy / numUsed
@@ -248,13 +234,15 @@ var Thing = function () {
     }
   }
   self.wander = function () {
-    var maxSpeed = 4
-    var useSpd = 'getBoundedRand(-maxSpeed, maxSpeed);'
+    let maxSpeed = 4
+    const useSpd = () => getBoundedRand(-maxSpeed, maxSpeed)
+
     if (self.state === 1) {
-      self.spdX = eval(useSpd)
-      self.spdY = eval(useSpd)
+      self.spdX = useSpd()
+      self.spdY = useSpd()
       self.state = 1.5
     }
+
     SWARM.state = 1
   }
   self.seekTarget = function () {
@@ -288,7 +276,7 @@ var Thing = function () {
   self.turn = function (turnAngle) {
     // This function uses radians (only way it would work)
     var currentAngleRad = self.currentAngle
-    angle = currentAngleRad + (turnAngle * TORADIAN)
+    var angle = currentAngleRad + (turnAngle * TORADIAN)
 
     // angle = angle - Math.floor(angle/360)*360;
     self.spdX = self.totalSpeed * Math.cos(angle)
