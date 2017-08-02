@@ -12,7 +12,6 @@ let FRAMERATE = 35
 
 // Updates in getCanvasSize()
 let ORGIN = { x: 0, y: 0 }
-
 const TORADIAN = (Math.PI / 180)
 const STATES = {
   // Word Based
@@ -52,18 +51,22 @@ var Swarm = function () {
   if (self.things[0] === undefined) {
     for (var i = 0; i < SWARM_SIZE; i++) {
       self.things.push(Thing())
-    };
+    }
   }
   self.setState = function (newState) {
-    var oldState = self.things[0].state
+    var oldState = self.things.state
     self.state = newState
 
-    (self.state !== oldState) ? self.things.map(function (thing) {
-      thing.state = self.state
-    }) : ''// Nothing
+    if (self.state !== oldState) {
+      self.things.forEach(function (thing) {
+        thing.state = self.state
+      })
+    }
   }
-  self.setTarget = coords => self.target = coords
-  self.update = () => self.things.map(thing => thing.update())
+  self.setTarget = function (coords) {
+    self.target = coords
+  }
+  self.update = () => self.things.forEach(thing => thing.update())
   return self
 }
 
@@ -113,45 +116,47 @@ var Thing = function () {
   self.y = Math.random() * CANVAS_SIZE
 
   // ==== UTILITY FUNCTIONS ====
-  var entity_update = self.update
+  var entityUpdate = self.update
   self.acclerate = function (ammount) {
     self.totalSpeed += ammount
     self.spdX = (self.totalSpeed) * Math.cos(self.currentAngle)
     self.spdY = (self.totalSpeed) * Math.sin(self.currentAngle)
   }
-  self.adoptAvgSpeed = function (nearby) {
-    var distances = nearby
-    var numUsed = 0
-    var numSpd = 0
+  self.adoptAvgSpeed = function (distances) {
+    var totUsed = 0
 
-    distances.map((item) => {
-      if (item.dis < NEARBY_SIZE) {
-        numUsed++
-        numSpd += b[item.index].totalSpeed
-      }
-    })
+    // This Gets approproate objs then adds the total speed together
+    const closeEnough = (x) => (x.dis < NEARBY_SIZE)
+    var totSpd = distances.filter(el => { return closeEnough(el) }).reduce((sum, item) => {
+      totUsed++
+      return sum + b[item.index].totalSpeed
+    }, 0)
 
-    // minus one for the self that is included in array
-    var avgSpd = numSpd / numUsed
+    var avgSpd = totSpd / totUsed
 
     self.acclerate(avgSpd - self.totalSpeed)
   }
   self.near = function () {
+    const sortByDis = (a, b) => { return a.dis - b.dis }
+
+    // Distaces in pixels, array, sorted by distance
     var distances = b.map((item, index) => {
       var distance = disToPoint(self, b[index])
       return { dis: distance, index: index }
-    })
+    }).sort(sortByDis)
 
-    // Sort by distances
-    distances.sort((a, b) => { return a.dis - b.dis })
     // Cut the crap farther away from self
     removeThing(distances, AVGAIM_MONITOR + 1, SWARM_SIZE)
+    // Delete Zero dis Self from array
+    removeThing(distances, 0, 1)
     return distances
   }
   self.avoidNeighbors = function () {
-    self.near().map((item) => {
+    const shouldMove = x => x.dis < AVOID_RANGE
+
+    self.near().forEach((item) => {
       var other = b[item.index]
-      if (item.dis < AVOID_RANGE && item.dis !== 0) {
+      if (shouldMove(item)) {
         var angle = angleToPoint(self, other)
         self.x -= Math.cos(angle) * AVOID_POWER
         self.y -= Math.sin(angle) * AVOID_POWER
@@ -161,25 +166,26 @@ var Thing = function () {
   self.averageAim = function () {
     var useNearby = true
     var len = 13
-    var numx = 0
-    var numy = 0
-    var numUsed = 0
+    var totx = 0
+    var toty = 0
+    var totUsed = 0
+    var distances = self.near()
 
-    self.near().map((item) => {
-      if (useNearby && item.dis < NEARBY_SIZE) {
-        numUsed++
-        numx += b[item.index].x + (len * b[item.index].spdX)
-        numy += b[item.index].y + (len * b[item.index].spdY)
+    const closeEnough = x => useNearby && x.dis < NEARBY_SIZE
+    distances.forEach((item) => {
+      if (closeEnough(item)) {
+        totUsed++
+        totx += b[item.index].x + (len * b[item.index].spdX)
+        toty += b[item.index].y + (len * b[item.index].spdY)
       }
     })
 
-    // minus one for the self that is included in array
-    var avgX = numx / numUsed
-    var avgY = numy / numUsed
+    var avgX = totx / totUsed
+    var avgY = toty / totUsed
     var avgAim = { x: avgX, y: avgY }
 
-    // GET AVG SPEED
-    if (numUsed > 1 && self.state === 3) {
+    // ADOPT AVG SPEED for Flock State
+    if (totUsed > 1 && self.state === 3) {
       self.adoptAvgSpeed(distances)
     }
 
@@ -216,7 +222,7 @@ var Thing = function () {
         s(1)
         break
 
-      // Circles Everywhere
+      // Circles
       case 5:
         self.turn(10)
         break
@@ -224,7 +230,7 @@ var Thing = function () {
       // do nothing
     }
     self.avoidNeighbors()
-    entity_update()
+    entityUpdate()
   }
 
   self.still = function () {
@@ -254,31 +260,17 @@ var Thing = function () {
     self.spdY = 0.05 * dis * Math.sin(angleRad)
   }
   self.follow = function (x, y) {
-    var followAvg = true
-    if (followAvg) {
-      // Use this for follow the average aim function
-      var other = self.averageAim()
-    } else {
-      // Use this for follow the first block.
-      var other = b[0]
-      if (other.totalSpeed < 4) other.acclerate(1)
-      if (self.totalSpeed > 3.8) self.acclerate(-0.3)
-
-      if (other.state === 3) {
-        other.state = 1
-      }
-    }
+    var other = self.averageAim()
 
     var desiredAngle = angleToPoint(self, other)
     self.spdX = self.totalSpeed * Math.cos(desiredAngle)
     self.spdY = self.totalSpeed * Math.sin(desiredAngle)
   }
   self.turn = function (turnAngle) {
-    // This function uses radians (only way it would work)
+    // This function uses radians
     var currentAngleRad = self.currentAngle
     var angle = currentAngleRad + (turnAngle * TORADIAN)
 
-    // angle = angle - Math.floor(angle/360)*360;
     self.spdX = self.totalSpeed * Math.cos(angle)
     self.spdY = self.totalSpeed * Math.sin(angle)
   }
@@ -296,16 +288,15 @@ var renderFirst = function (data) {
   ctx.fillRect(data[0].x - s / 2, data[0].y - s / 2, s, s)
 }
 var renderWhite = function (data) {
-  // Render all but first unit
   ctx.fillStyle = '#FFFFFF'
   var s = SWARM_MASS
 
-  data.map(function (thing) {
+  data.forEach(function (thing) {
     ctx.fillRect(thing.x - s / 2, thing.y - s / 2, s, s)
   })
 }
-var renderAllAverageAim = function () {
-  b.map(function (thing) {
+var renderAverageAim = function (data) {
+  data.forEach(function (thing) {
     var avgAim = thing.averageAim()
     var s = SWARM_MASS * 0.5
     ctx.fillStyle = '#00FF00'
@@ -314,7 +305,7 @@ var renderAllAverageAim = function () {
 }
 var showAim = function (data) {
   var len = 8
-  data.map(function (s) {
+  data.forEach(function (s) {
     var start = { x: s.x, y: s.y }
     var end = { x: s.x + (len * s.spdX), y: s.y + (len * s.spdY) }
     ctx.beginPath()
@@ -335,6 +326,6 @@ setInterval(function () {
   clearCanvas()
   renderWhite(b)
   renderFirst(b)
-  renderAllAverageAim()
+  renderAverageAim(b)
   showAim(b)
 }, 1000 / FRAMERATE)

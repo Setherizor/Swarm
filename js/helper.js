@@ -33,7 +33,7 @@ function s (num, coords) {
   }
 }
 
-// Remove thing from Swarm
+// Remove thing from Array
 // Example: removeThing(SWARM.things, 0, 1);
 function removeThing (array, toRemove, number) {
   array.splice(toRemove, number)
