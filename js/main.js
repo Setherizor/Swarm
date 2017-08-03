@@ -194,41 +194,25 @@ var Thing = function () {
 
   // ==== STATE FUNCTIONS ====
   self.update = function () {
-    switch (self.state) {
-      // Still
-      case 0:
-        self.still()
-        break
+    const executeIfFunction = f =>
+      typeof f === 'function' ? f() : f
 
-      // Almost Wander
-      case 1:
-        self.wander()
-        // Nothing
-        break
+    const switchcase = cases => defaultCase => key =>
+      key in cases ? cases[key] : defaultCase
 
-      // Seek
-      case 2:
-        self.seekTarget()
-        break
+    const switchcaseF = cases => defaultCase => key =>
+      executeIfFunction(switchcase(cases)(defaultCase)(key))
 
-      // Follow
-      case 3:
-        self.follow()
-        break
+    const runState = x => switchcaseF({
+      0: self.still,
+      1: self.wander,
+      2: self.seekTarget,
+      3: self.follow,
+      4: self.broken,
+      5: self.turn10
+    })('')(x)
+    runState(self.state)
 
-      // Flee
-      case 4:
-        console.log('Broken')
-        s(1)
-        break
-
-      // Circles
-      case 5:
-        self.turn(10)
-        break
-      case 10:
-      // do nothing
-    }
     self.avoidNeighbors()
     entityUpdate()
   }
@@ -274,8 +258,15 @@ var Thing = function () {
     self.spdX = self.totalSpeed * Math.cos(angle)
     self.spdY = self.totalSpeed * Math.sin(angle)
   }
+  self.turn10 = () => self.turn(10)
+  self.broken = () => {
+    console.log("Broken")
+    self.state = 1.5
+  }
+
   return self
 }
+
 
 // ==== Rendering Functions ====
 var clearCanvas = function () {
