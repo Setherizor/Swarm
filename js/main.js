@@ -41,31 +41,25 @@ CANVAS_SIZE = getCanvasSize(ctx, 10)
 canvas.width = canvas.height = CANVAS_SIZE
 ctx.font = '30px Roboto'
 // Swarm class
-var Swarm = function () {
-  var self = {
+const Swarm = function () {
+  const self = {
     things: [],
     target: ORGIN,
     state: 0
   }
   // Create Swarm
   if (self.things[0] === undefined) {
-    for (var i = 0; i < SWARM_SIZE; i++) {
-      self.things.push(Thing())
-    }
+     const arr = Array.apply(null, Array(SWARM_SIZE));
+     self.things = arr.map(() => Thing());
   }
   self.setState = function (newState) {
-    var oldState = self.things.state
+    const oldState = self.things.state
     self.state = newState
-
     if (self.state !== oldState) {
-      self.things.forEach(function (thing) {
-        thing.state = self.state
-      })
+      self.things.forEach((thing) => thing.state = self.state)
     }
   }
-  self.setTarget = function (coords) {
-    self.target = coords
-  }
+  self.setTarget = (coords) => self.target = coords
   self.update = () => self.things.forEach(thing => thing.update())
   return self
 }
@@ -109,8 +103,8 @@ var Entity = function () {
 }
 
 // Thing Class
-var Thing = function () {
-  var self = Entity()
+const Thing = function () {
+  const self = Entity()
   // Random Starting point
   self.x = Math.random() * CANVAS_SIZE
   self.y = Math.random() * CANVAS_SIZE
@@ -126,8 +120,8 @@ var Thing = function () {
     var totUsed = 0
 
     // This Gets approproate objs then adds the total speed together
-    const closeEnough = (x) => (x.dis < NEARBY_SIZE)
-    var totSpd = distances.filter(el => { return closeEnough(el) }).reduce((sum, item) => {
+    const closeEnough = x => x.dis < NEARBY_SIZE
+    var totSpd = distances.filter(el => closeEnough(el)).reduce((sum, item) => {
       totUsed++
       return sum + b[item.index].totalSpeed
     }, 0)
@@ -260,13 +254,12 @@ var Thing = function () {
   }
   self.turn10 = () => self.turn(10)
   self.broken = () => {
-    console.log("Broken")
+    console.log('Broken')
     self.state = 1.5
   }
 
   return self
 }
-
 
 // ==== Rendering Functions ====
 var clearCanvas = function () {

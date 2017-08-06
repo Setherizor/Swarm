@@ -1,13 +1,13 @@
 // ==== HELPER FUNCTIONS ====
 // Input for the commands ;)
-function nativeConsole () {
+const nativeConsole = () => {
   var input = document.getElementById('input').value
   eval(input)
   input = ''
   return false
 }
 
-function updateGlobals () {
+const updateGlobals = () => {
   SWARM_MASS = document.getElementById('smass').value
   NEARBY_SIZE = document.getElementById('nearbySize').value
   AVGAIM_MONITOR = document.getElementById('watchNumber').value
@@ -18,71 +18,71 @@ function updateGlobals () {
 }
 
 // Command swarm
-function s (num, coords) {
-  // Simple Change
-  if (coords === undefined) {
+const s = (num, coords) => {
+  const updateTitle = (state) => {
+    document.getElementById('title').innerText = 'Swarm: ' + state
+  }
+  // Simple State Change
+  const stateChange = (num) => {
     SWARM.setState(num)
     console.log('State changed to ' + STATES[num])
-    document.getElementById('title').innerText = 'Swarm: ' + STATES[num]
-    return num
-  } else {
-    // Seek command with coords object
+    updateTitle(STATES[num])
+  }
+  // Seek command with coords object
+  const seekPoint = (num, coords) => {
     SWARM.setTarget(coords)
     SWARM.setState(num)
+    updateTitle(STATES[num])
     console.log('Sent Swarm to (' + coords.x + ', ' + coords.y + ')')
   }
+  (coords === undefined) ? stateChange(num) : seekPoint(num, coords)
 }
 
 // Remove thing from Array
 // Example: removeThing(SWARM.things, 0, 1);
-function removeThing (array, toRemove, number) {
+const removeThing = (array, toRemove, number) => {
   array.splice(toRemove, number)
 }
 
 // Math related functions
-function getBoundedRand (min, max) {
+const getBoundedRand = (min, max) => {
   return Math.random() * (max - min) + min
 }
-function getBoundedInt (min, max) {
+const getBoundedInt = (min, max) => {
   return Math.floor(Math.random() * (max - min) + min)
 }
-function angleToPoint (self, other) {
+const angleToPoint = (self, other) => {
+  const sanit = (a, b) => (b - a === 0) ? a : b - a
+  const hasOther = (s, o) => Math.atan2(sanit(s.y, o.y), sanit(s.x, o.x))
   // returns radians
-  if (other !== undefined) {
-    return Math.atan2(other.y - self.y, other.x - self.x)
-  }
-  return Math.atan2(self.y, self.x)
+  return hasOther(self, other || self)
 }
-function disToPoint (self, other) {
-  var a = self.x - other.x
-  var b = self.y - other.y
-  var distance = Math.sqrt(a * a + b * b)
-  return distance // in pixels
+const disToPoint = (self, other) => {
+  const a = self.x - other.x
+  const b = self.y - other.y
+  return Math.sqrt(a * a + b * b) // in pixels
 }
 
 // Click Events
 var canvas = document.getElementById('ctx')
-canvas.addEventListener('mousedown', function (event) {
-  var x = event.pageX
-  var y = event.pageY
-  var click = { x: x, y: y }
-  s(2, click)
+canvas.addEventListener('mousedown', (event) => {
+  const x = event.pageX
+  const y = event.pageY
+  s(2, { x: x, y: y })
 })
-canvas.addEventListener('mouseup', function (event) {
+canvas.addEventListener('mouseup', (event) => {
   s(1)
 })
-canvas.addEventListener('dblclick', function (event) {
+canvas.addEventListener('dblclick', (event) => {
   s(5)
 })
 
 // Max canvas size for square
-function getCanvasSize (ctx, adjustment) {
-  var square = 0
-  var w = window.innerWidth - adjustment
-  var h = window.innerHeight - adjustment
-
-  w > h ? square = h : square = w
-
+const getCanvasSize = (ctx, adjustment) => {
+  const w = window.innerWidth - adjustment
+  const h = window.innerHeight - adjustment
+  const square = w > h ? h : w
+  // Update the orgin Variable
   ORGIN = { x: square / 2, y: square / 2 }
   return square
 }
