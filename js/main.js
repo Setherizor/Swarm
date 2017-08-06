@@ -118,7 +118,6 @@ const Thing = function () {
   }
   self.adoptAvgSpeed = function (distances) {
     var totUsed = 0
-
     // This Gets approproate objs then adds the total speed together
     const closeEnough = x => x.dis < NEARBY_SIZE
     var totSpd = distances.filter(el => closeEnough(el)).reduce((sum, item) => {
@@ -134,8 +133,8 @@ const Thing = function () {
     const sortByDis = (a, b) => { return a.dis - b.dis }
 
     // Distaces in pixels, array, sorted by distance
-    var distances = b.map((item, index) => {
-      var distance = disToPoint(self, b[index])
+    const distances = b.map((item, index) => {
+      const distance = disToPoint(self, b[index])
       return { dis: distance, index: index }
     }).sort(sortByDis)
 
@@ -149,22 +148,22 @@ const Thing = function () {
     const shouldMove = x => x.dis < AVOID_RANGE
 
     self.near().forEach((item) => {
-      var other = b[item.index]
+      const other = b[item.index]
       if (shouldMove(item)) {
-        var angle = angleToPoint(self, other)
+        const angle = angleToPoint(self, other)
         self.x -= Math.cos(angle) * AVOID_POWER
         self.y -= Math.sin(angle) * AVOID_POWER
       }
     })
   }
-  self.averageAim = function () {
-    var useNearby = true
-    var len = 13
+  self.averageAim = () => {
+    const useNearby = true
+    const len = 13
+    const distances = self.near()
     var totx = 0
     var toty = 0
     var totUsed = 0
-    var distances = self.near()
-
+    
     const closeEnough = x => useNearby && x.dis < NEARBY_SIZE
     distances.forEach((item) => {
       if (closeEnough(item)) {
@@ -182,7 +181,6 @@ const Thing = function () {
     if (totUsed > 1 && self.state === 3) {
       self.adoptAvgSpeed(distances)
     }
-
     return avgAim
   }
 
@@ -226,7 +224,6 @@ const Thing = function () {
       self.spdY = useSpd()
       self.state = 1.5
     }
-
     SWARM.state = 1
   }
   self.seekTarget = function () {
