@@ -1,5 +1,5 @@
 // Swarm variables
-let SWARM = null
+let SWARM = {}
 const SWARM_SIZE = 100
 let SWARM_MASS = 10
 let NEARBY_SIZE = 100
