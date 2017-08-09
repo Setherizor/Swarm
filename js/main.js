@@ -49,8 +49,8 @@ const Swarm = function () {
   }
   // Create Swarm
   if (self.things[0] === undefined) {
-     const arr = Array.apply(null, Array(SWARM_SIZE));
-     self.things = arr.map(() => Thing());
+    const arr = Array.apply(null, Array(SWARM_SIZE));
+    self.things = arr.map(() => Thing());
   }
   self.setState = function (newState) {
     const oldState = self.things.state
@@ -65,8 +65,8 @@ const Swarm = function () {
 }
 
 // Entity Class
-var Entity = function () {
-  var self = {
+const Entity = function () {
+  const self = {
     x: 0,
     y: 0,
     spdX: 0,
@@ -163,7 +163,7 @@ const Thing = function () {
     var totx = 0
     var toty = 0
     var totUsed = 0
-    
+
     const closeEnough = x => useNearby && x.dis < NEARBY_SIZE
     distances.forEach((item) => {
       if (closeEnough(item)) {
@@ -181,6 +181,7 @@ const Thing = function () {
     if (totUsed > 1 && self.state === 3) {
       self.adoptAvgSpeed(distances)
     }
+
     return avgAim
   }
 
@@ -207,6 +208,11 @@ const Thing = function () {
 
     self.avoidNeighbors()
     entityUpdate()
+
+    // b.forEach((item) => {
+    //   console.assert(toString(item.x) != toString(NaN))
+    // })
+    
   }
 
   self.still = function () {
@@ -234,10 +240,10 @@ const Thing = function () {
     self.spdX = 0.05 * dis * Math.cos(angleRad)
     self.spdY = 0.05 * dis * Math.sin(angleRad)
   }
-  self.follow = function (x, y) {
+  self.follow = function () {
     var other = self.averageAim()
-
     var desiredAngle = angleToPoint(self, other)
+
     self.spdX = self.totalSpeed * Math.cos(desiredAngle)
     self.spdY = self.totalSpeed * Math.sin(desiredAngle)
   }
@@ -254,7 +260,6 @@ const Thing = function () {
     console.log('Broken')
     self.state = 1.5
   }
-
   return self
 }
 
