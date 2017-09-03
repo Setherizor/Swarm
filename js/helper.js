@@ -1,4 +1,24 @@
 // ==== HELPER FUNCTIONS ====
+const STATES = {
+  // Word Based
+  Still: 0,
+  Wander: 1,
+  Seek: 2,
+  Follow: 3,
+  Flee: 4,
+  Circles: 5,
+  Nothing: 10,
+
+  // Number based
+  0: 'Still',
+  1: 'Wander',
+  2: 'Seek',
+  3: 'Follow',
+  4: 'Flee',
+  5: 'Circles',
+  10: 'Nothing'
+}
+
 // Input for the commands ;)
 const nativeConsole = () => {
   var input = document.getElementById('input').value
@@ -8,12 +28,12 @@ const nativeConsole = () => {
 }
 
 const updateGlobals = () => {
-  SWARM_MASS = document.getElementById('smass').value
-  NEARBY_SIZE = document.getElementById('nearbySize').value
-  AVGAIM_MONITOR = document.getElementById('watchNumber').value
-  AVOID_RANGE = document.getElementById('avoidR').value
-  AVOID_POWER = document.getElementById('avoidP').value
-  FRAMERATE = document.getElementById('fps').value
+  window.SWARM_MASS = document.getElementById('smass').value
+  window.NEARBY_SIZE = document.getElementById('nearbySize').value
+  window.AVGAIM_MONITOR = document.getElementById('watchNumber').value
+  window.AVOID_RANGE = document.getElementById('avoidR').value
+  window.AVOID_POWER = document.getElementById('avoidP').value
+  window.FRAMERATE = document.getElementById('fps').value
   return false
 }
 
@@ -83,6 +103,6 @@ const getCanvasSize = (ctx, adjustment) => {
   const h = window.innerHeight - adjustment
   const square = w > h ? h : w
   // Update the orgin Variable
-  ORGIN = { x: square / 2, y: square / 2 }
+  window.ORGIN = { x: square / 2, y: square / 2 }
   return square
 }
